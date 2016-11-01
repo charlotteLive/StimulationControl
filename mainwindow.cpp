@@ -12,6 +12,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     flagConnect(false),
     isStart(false),
+    desireTraj(&MainWindow::step_trajectory),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
@@ -37,6 +38,11 @@ MainWindow::MainWindow(QWidget *parent) :
     {
         ui->statusBar->showMessage("DataLink Console Test Application!\n");
     }
+
+    init_channels();
+    init_desire_trajectory();
+    sinePulse = new QTimer(this);
+    connect(sinePulse,SIGNAL(timeout()),this,SLOT(on_sinePulseTimeout()));
 
     //绘图参数
     ui->customPlot->addGraph(); // blue line
@@ -77,6 +83,42 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::init_channels()
+{
+    ui->buttonGroup->setId(ui->radioButton_1, 0);
+    ui->buttonGroup->setId(ui->radioButton_2, 1);
+    ui->buttonGroup->setId(ui->radioButton_3, 2);
+    ui->buttonGroup->setId(ui->radioButton_4, 3);
+    ui->buttonGroup->setId(ui->radioButton_5, 4);
+    ui->buttonGroup->setId(ui->radioButton_6, 5);
+    ui->buttonGroup->setId(ui->radioButton_7, 6);
+    ui->buttonGroup->setId(ui->radioButton_8, 7);
+}
+
+void MainWindow::init_desire_trajectory()
+{
+    ui->desiredTrajectory->addItem(QStringLiteral("阶跃轨迹"));
+    ui->desiredTrajectory->addItem(QStringLiteral("正弦轨迹"));
+    ui->desiredTrajectory->addItem(QStringLiteral("伸膝轨迹"));
+    ui->desiredTrajectory->addItem(QStringLiteral("步行轨迹"));
+
+}
+
+void MainWindow::on_action_triggered()
+{
+    ui->currentPage->setCurrentIndex(0);
+}
+
+void MainWindow::on_action_2_triggered()
+{
+    ui->currentPage->setCurrentIndex(1);
+}
+
+void MainWindow::on_action_3_triggered()
+{
+    ui->currentPage->setCurrentIndex(2);
+}
+
 void MainWindow::on_connect_clicked()
 {
     QString comport = ui->comBox->currentText();
@@ -109,13 +151,13 @@ void MainWindow::on_singlePulse_clicked()
 {
     int width = ui->sWidth->value();
     uchar current = ui->sCurrent->value();
-    my_stimulator->SinglePulse(width,current);
+    my_stimulator->SinglePulse(width,current,ui->buttonGroup->checkedId());
 }
 
 void MainWindow::on_rectPulse_clicked()
 {
     //通道初始化，周期默认为40ms
-    my_stimulator->InitChannelList();
+    my_stimulator->InitChannelList(40,ui->buttonGroup->checkedId());
 
     //延时200ms
     QTime t;
@@ -128,14 +170,45 @@ void MainWindow::on_rectPulse_clicked()
     uchar current = ui->sCurrent->value();
     my_stimulator->StartChannel(width,current);
 
+    if(ui->isCollection->isChecked())
+    {
+        pOnline->OnLineStatus(0, ONLINE_START, NULL);
+    }
+
     //定时关闭
-    QTimer::singleShot(3000,this,SLOT(rect_stop()));
+    QTimer::singleShot(ui->stimulationTime->value(),this,SLOT(rect_stop()));
 }
 
 void MainWindow::rect_stop()
 {
     my_stimulator->StopChannel();
-    pOnline->OnLineStatus(0, ONLINE_STOP, NULL);
+    if(ui->isCollection->isChecked())
+    {
+         pOnline->OnLineStatus(0, ONLINE_STOP, NULL);
+    }
+}
+
+void MainWindow::on_sineWave_clicked()
+{
+    sinePulse->start(10);
+    pOnline->OnLineStatus(0, ONLINE_START, NULL);
+    key = 0;
+}
+
+void MainWindow::on_sinePulseTimeout()
+{
+    if(key%4==0)
+    {
+        int time = key * 0.04;
+        int width = ui->sine_1->value() + (ui->sine_2->value())*qSin(6.28/(ui->sine_3->value())*time-1.57);
+        my_stimulator->SinglePulse(width,ui->sCurrent->value(),ui->buttonGroup->checkedId());
+        ++key;
+        if(key >= static_cast<unsigned int>(ui->stimulationTime->value())*25)
+        {
+            sinePulse->stop();
+            pOnline->OnLineStatus(0, ONLINE_STOP, NULL);
+        }
+    }
 }
 
 //闭环控制按钮的响应函数
@@ -145,7 +218,7 @@ void MainWindow::on_ControlStart_clicked()
     if (isStart)
     {
         pOnline->OnLineStatus(0, ONLINE_STOP, NULL);
-        ui->ControlStart->setText("start");
+        ui->ControlStart->setText(QStringLiteral("开始"));
         isStart = false;
         getData->stop();
         my_stimulator->my_watchdog->start(1200);
@@ -168,12 +241,12 @@ void MainWindow::on_ControlStart_clicked()
     else
     {
         pOnline->OnLineStatus(0, ONLINE_START, NULL);
-        ui->ControlStart->setText("stop");
+        ui->ControlStart->setText(QStringLiteral("停止"));
         isStart = true;
+        key = 0;
         getData->start(10);
         my_stimulator->my_watchdog->stop();
         ui->connect->setEnabled(false);
-        key = 0;
 
         //创建滑模控制器对象
         slide = new Slidemodel(3,10);
@@ -189,7 +262,7 @@ void MainWindow::data_update()
         pOnline->OnLineStatus(0, ONLINE_GETVALUE, &gData);
         if (gData < 0){
             QMessageBox::information(this,"Error","Cannot communicate with DataLINK!\n  Is DataLINK running and connected to the DataLINK hardware?");
-            getData->stop();
+            on_ControlStart_clicked();
         }
         else{
             static double valueLast = 0;
@@ -198,22 +271,16 @@ void MainWindow::data_update()
             dValue = (value - valueLast)/0.04;
             valueLast = value;
 
-            //正弦参考角度
-//            desire = 25 + 15*qSin(time-1.57);desire2 = 15*qCos(time-1.57);desire3 = -15*qSin(time-1.57);
-            //阶跃参考角度
-//            desire = 40;desire2 = 0;desire3 = 0;
-            //伸膝轨迹
-//            desire = 40 - 35*qExp(-0.4*time);desire2 = -14*qExp(-0.4*time);desire3 = 5.6*qExp(-0.4*time);
-            //自定义轨迹，行走轨迹
-            desire = aDesire[key/4];desire2 = dthDesire[key/4];desire3 = ddthDesire[key/4];
+            //通过函数指针完成轨迹的选择
+            (this->*desireTraj)(time);
 
             ui->customPlot->graph(0)->addData(time, value);
-            ui->customPlot->graph(0)->removeDataBefore(time-10);
+            ui->customPlot->graph(0)->removeDataBefore(time-15);
             ui->customPlot->graph(0)->rescaleValueAxis();
             ui->customPlot->graph(1)->addData(time, desire);
-            ui->customPlot->graph(1)->removeDataBefore(time-10);
+            ui->customPlot->graph(1)->removeDataBefore(time-15);
             ui->customPlot->graph(1)->rescaleValueAxis(true);
-            ui->customPlot->xAxis->setRange(time+0.25, 10, Qt::AlignRight);
+            ui->customPlot->xAxis->setRange(time+0.25, 15, Qt::AlignRight);
             ui->customPlot->replot();
 
             angleDesire.append(desire);
@@ -225,7 +292,7 @@ void MainWindow::data_update()
             value = qDegreesToRadians(value);
             dValue = qDegreesToRadians(dValue);
             int pWidth = slide->computeOut(desire,desire2,desire3,value,dValue);
-            my_stimulator->SinglePulse(pWidth,ui->sCurrent->value());
+            my_stimulator->SinglePulse(pWidth,ui->sCurrent_2->value());
             dataWidth.append(double(pWidth));
 
             QString s;
@@ -236,16 +303,6 @@ void MainWindow::data_update()
     key++;
 }
 
-
-void MainWindow::on_action_triggered()
-{
-    ui->currentPage->setCurrentIndex(0);
-}
-
-void MainWindow::on_action_2_triggered()
-{
-    ui->currentPage->setCurrentIndex(1);
-}
 
 void MainWindow::data_plot()
 {
@@ -266,11 +323,53 @@ void MainWindow::data_plot()
     ui->anglePlot->replot();
     ui->widthPlot->replot();
 
-    ui->currentPage->setCurrentIndex(1);
+    ui->currentPage->setCurrentIndex(2);
 }
 
-void MainWindow::on_rectPulseData_clicked()
+void MainWindow::on_desiredTrajectory_currentIndexChanged(int index)
 {
-    on_rectPulse_clicked();
-    pOnline->OnLineStatus(0, ONLINE_START, NULL);
+    switch (index) {
+    case 0:
+        desireTraj = &MainWindow::step_trajectory;
+        break;
+    case 1:
+        desireTraj = &MainWindow::sine_trajectory;
+        break;
+    case 2:
+        desireTraj = &MainWindow::exten_trajectory;
+        break;
+    case 3:
+        desireTraj = &MainWindow::walk_trajectory;
+        break;
+    default:
+        break;
+    }
+}
+
+void MainWindow::step_trajectory(double time)
+{
+    time = time;
+    desire = 40;desire2 = 0;desire3 = 0;
+}
+
+void MainWindow::sine_trajectory(double time)
+{
+    desire = 25 + 15*qSin(time-1.57);
+    desire2 = 15*qCos(time-1.57);
+    desire3 = -15*qSin(time-1.57);
+}
+
+void MainWindow::walk_trajectory(double time)
+{
+    int key = time*100;
+    desire = aDesire[key/4];
+    desire2 = dthDesire[key/4];
+    desire3 = ddthDesire[key/4];
+}
+
+void MainWindow::exten_trajectory(double time)
+{
+    desire = 40 - 35*qExp(-0.4*time);
+    desire2 = -14*qExp(-0.4*time);
+    desire3 = 5.6*qExp(-0.4*time);
 }

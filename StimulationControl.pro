@@ -27,3 +27,6 @@ HEADERS  += mainwindow.h \
 FORMS    += mainwindow.ui
 
 win32: LIBS += -L$$PWD/./ -lOnLineInterface
+
+RESOURCES += \
+    channels.qrc

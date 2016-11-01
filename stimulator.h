@@ -19,7 +19,7 @@ public:
     void WatchDog();
     void GetStimulationMode();
     void SinglePulse(int width, uchar current, uchar channel = 0);
-    void InitChannelList(int interval = 40);
+    void InitChannelList(int interval = 40, char channel = 1);
     void StartChannel(int width, uchar current);
     void StopChannel();
 

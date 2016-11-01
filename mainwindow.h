@@ -21,6 +21,16 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+    typedef void (MainWindow::*PFUNC)(double);
+
+private:
+    void data_plot();
+    void init_channels();
+    void init_desire_trajectory();
+    void step_trajectory(double time);
+    void sine_trajectory(double time);
+    void walk_trajectory(double time);
+    void exten_trajectory(double time);
 
 private slots:
     void on_connect_clicked();
@@ -38,18 +48,25 @@ private slots:
 
     void on_action_2_triggered();
 
-    void on_rectPulseData_clicked();
+    void on_action_3_triggered();
+
+    void on_sineWave_clicked();
+
+    void on_desiredTrajectory_currentIndexChanged(int index);
+
+    void on_sinePulseTimeout();
 
 private:
-    void data_plot();
 
     Ui::MainWindow *ui;
     bool flagConnect;
     bool isStart;
     Stimulator* my_stimulator;
     QTimer* getData;
+    QTimer* sinePulse;
     IOnLine *pOnline;	// 传感器接口的指针
     Slidemodel *slide;
+    PFUNC desireTraj;
 
     unsigned int key;
     double value;

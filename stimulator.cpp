@@ -101,11 +101,11 @@ void Stimulator::SinglePulse(int width, uchar current, uchar channel)
     writeData();
 }
 
-void Stimulator::InitChannelList(int interval)
+void Stimulator::InitChannelList(int interval,char channel)
 {
     command_data.clear();
     command_data.append(packetNum).append(char(30)).append(char(0))
-            .append(char(1)).append(char(0)).append(char(interval*2-3)).append(char(0))
+            .append(char(1<<channel)).append(char(0)).append(char(interval*2-3)).append(char(0))
             .append(char(interval*2-2)).append(char(0));
     writeData();
 }
