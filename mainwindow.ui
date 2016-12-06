@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>577</width>
-    <height>397</height>
+    <height>410</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,11 +20,11 @@
       <x>10</x>
       <y>10</y>
       <width>551</width>
-      <height>331</height>
+      <height>341</height>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="page">
      <widget class="QComboBox" name="comBox">
@@ -426,7 +426,7 @@
       <property name="geometry">
        <rect>
         <x>310</x>
-        <y>280</y>
+        <y>310</y>
         <width>71</width>
         <height>31</height>
        </rect>
@@ -439,7 +439,7 @@
       <property name="geometry">
        <rect>
         <x>40</x>
-        <y>60</y>
+        <y>100</y>
         <width>481</width>
         <height>191</height>
        </rect>
@@ -449,7 +449,7 @@
       <property name="geometry">
        <rect>
         <x>150</x>
-        <y>290</y>
+        <y>320</y>
         <width>113</width>
         <height>21</height>
        </rect>
@@ -572,7 +572,14 @@
     <addaction name="action_2"/>
     <addaction name="action_3"/>
    </widget>
+   <widget class="QMenu" name="menu_2">
+    <property name="title">
+     <string>腕关节刺激</string>
+    </property>
+    <addaction name="doubleStimulation"/>
+   </widget>
    <addaction name="menu"/>
+   <addaction name="menu_2"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="action">
@@ -588,6 +595,11 @@
   <action name="action_2">
    <property name="text">
     <string>闭环控制页面</string>
+   </property>
+  </action>
+  <action name="doubleStimulation">
+   <property name="text">
+    <string>双通道电刺激</string>
    </property>
   </action>
  </widget>

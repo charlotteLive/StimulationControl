@@ -17,14 +17,17 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     stimulator.cpp \
     qcustomplot.cpp \
-    slidemodel.cpp
+    slidemodel.cpp \
+    doublestimdialog.cpp
 
 HEADERS  += mainwindow.h \
     stimulator.h \
     qcustomplot.h \
-    slidemodel.h
+    slidemodel.h \
+    doublestimdialog.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    doublestimdialog.ui
 
 win32: LIBS += -L$$PWD/./ -lOnLineInterface
 

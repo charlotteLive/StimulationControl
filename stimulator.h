@@ -5,6 +5,7 @@
 #include <QByteArray>
 #include <QString>
 #include <QTimer>
+#include <QVector>
 #include<QtSerialPort/QSerialPort>
 
 class Stimulator : public QObject
@@ -21,6 +22,7 @@ public:
     void SinglePulse(int width, uchar current, uchar channel = 0);
     void InitChannelList(int interval = 40, char channel = 1);
     void StartChannel(int width, uchar current);
+    void StartChannel(QVector<int> widths, QVector<uchar> currents);
     void StopChannel();
 
 private:

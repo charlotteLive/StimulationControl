@@ -7,6 +7,7 @@
 #include <QFile>
 #include <QTextStream>
 #include "qcustomplot.h"
+#include "doublestimdialog.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -119,6 +120,12 @@ void MainWindow::on_action_3_triggered()
     ui->currentPage->setCurrentIndex(2);
 }
 
+void MainWindow::on_doubleStimulation_triggered()
+{
+    DoubleStimDialog dStim;
+    dStim.exec();
+}
+
 void MainWindow::on_connect_clicked()
 {
     QString comport = ui->comBox->currentText();
@@ -157,7 +164,8 @@ void MainWindow::on_singlePulse_clicked()
 void MainWindow::on_rectPulse_clicked()
 {
     //通道初始化，周期默认为40ms
-    my_stimulator->InitChannelList(40,ui->buttonGroup->checkedId());
+    char channel = 1>>ui->buttonGroup->checkedId();
+    my_stimulator->InitChannelList(40,channel);
 
     //延时200ms
     QTime t;
@@ -176,7 +184,7 @@ void MainWindow::on_rectPulse_clicked()
     }
 
     //定时关闭
-    QTimer::singleShot(ui->stimulationTime->value(),this,SLOT(rect_stop()));
+    QTimer::singleShot(1000*ui->stimulationTime->value(),this,SLOT(rect_stop()));
 }
 
 void MainWindow::rect_stop()
@@ -190,25 +198,31 @@ void MainWindow::rect_stop()
 
 void MainWindow::on_sineWave_clicked()
 {
-    sinePulse->start(10);
-    pOnline->OnLineStatus(0, ONLINE_START, NULL);
     key = 0;
+    sinePulse->start(10);
+    if(ui->isCollection->isChecked())
+    {
+         pOnline->OnLineStatus(0, ONLINE_START, NULL);
+    }
 }
 
 void MainWindow::on_sinePulseTimeout()
 {
     if(key%4==0)
     {
-        int time = key * 0.04;
+        int time = key * 0.01;
         int width = ui->sine_1->value() + (ui->sine_2->value())*qSin(6.28/(ui->sine_3->value())*time-1.57);
         my_stimulator->SinglePulse(width,ui->sCurrent->value(),ui->buttonGroup->checkedId());
-        ++key;
-        if(key >= static_cast<unsigned int>(ui->stimulationTime->value())*25)
+        if(key >= static_cast<unsigned int>(ui->stimulationTime->value())*100)
         {
             sinePulse->stop();
-            pOnline->OnLineStatus(0, ONLINE_STOP, NULL);
+            if(ui->isCollection->isChecked())
+            {
+                 pOnline->OnLineStatus(0, ONLINE_STOP, NULL);
+            }
         }
     }
+    ++key;
 }
 
 //闭环控制按钮的响应函数

@@ -105,7 +105,7 @@ void Stimulator::InitChannelList(int interval,char channel)
 {
     command_data.clear();
     command_data.append(packetNum).append(char(30)).append(char(0))
-            .append(char(1<<channel)).append(char(0)).append(char(interval*2-3)).append(char(0))
+            .append(char(channel)).append(char(0)).append(char(interval*2-3)).append(char(0))
             .append(char(interval*2-2)).append(char(0));
     writeData();
 }
@@ -115,6 +115,17 @@ void Stimulator::StartChannel(int width, uchar current)
     command_data.clear();
     command_data.append(packetNum).append(char(32)).append(char(0)).append(char(width/256))
             .append(char(width%256)).append(current);
+    writeData();
+}
+
+void Stimulator::StartChannel(QVector<int> widths, QVector<uchar> currents)
+{
+    command_data.clear();
+    command_data.append(packetNum).append(char(32));
+    for(int i=0;i<widths.size();++i){
+        command_data.append(char(0)).append(char(widths[i]/256))
+                .append(char(widths[i]%256)).append(currents[i]);
+    }
     writeData();
 }
 
