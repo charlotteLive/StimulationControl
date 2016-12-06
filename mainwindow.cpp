@@ -122,7 +122,7 @@ void MainWindow::on_action_3_triggered()
 
 void MainWindow::on_doubleStimulation_triggered()
 {
-    DoubleStimDialog dStim;
+    DoubleStimDialog dStim(my_stimulator);
     dStim.exec();
 }
 

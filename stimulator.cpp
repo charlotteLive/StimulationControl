@@ -12,7 +12,6 @@ Stimulator::Stimulator(QObject *parent)
     command_data.reserve(20);
     command_head.append(char(0xF0)).append(char(0x81)).append(char(0x00))
             .append(char(0x81)).append(char(0x00));
-
 }
 
 uchar Stimulator::Checksum()

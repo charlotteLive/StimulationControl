@@ -21,6 +21,8 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+
+    Stimulator* my_stimulator;
     typedef void (MainWindow::*PFUNC)(double);
 
 private:
@@ -63,7 +65,6 @@ private:
     Ui::MainWindow *ui;
     bool flagConnect;
     bool isStart;
-    Stimulator* my_stimulator;
     QTimer* getData;
     QTimer* sinePulse;
     IOnLine *pOnline;	// 传感器接口的指针
