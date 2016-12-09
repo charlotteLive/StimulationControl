@@ -8,6 +8,7 @@
 #include <QTextStream>
 #include "qcustomplot.h"
 #include "doublestimdialog.h"
+#include "trajectory.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -124,6 +125,12 @@ void MainWindow::on_doubleStimulation_triggered()
 {
     DoubleStimDialog dStim(my_stimulator);
     dStim.exec();
+}
+
+void MainWindow::on_action_trajectory_triggered()
+{
+    trajectory traj(pOnline);
+    traj.exec();
 }
 
 void MainWindow::on_connect_clicked()

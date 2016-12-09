@@ -168,7 +168,7 @@
           <string/>
          </property>
          <property name="pixmap">
-          <pixmap resource="channels.qrc">:/images/pic/1.bmp</pixmap>
+          <pixmap>:/images/pic/1.bmp</pixmap>
          </property>
         </widget>
        </item>
@@ -577,6 +577,7 @@
      <string>腕关节刺激</string>
     </property>
     <addaction name="doubleStimulation"/>
+    <addaction name="action_trajectory"/>
    </widget>
    <addaction name="menu"/>
    <addaction name="menu_2"/>
@@ -602,6 +603,11 @@
     <string>双通道电刺激</string>
    </property>
   </action>
+  <action name="action_trajectory">
+   <property name="text">
+    <string>轨迹跟踪</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -612,9 +618,7 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources>
-  <include location="channels.qrc"/>
- </resources>
+ <resources/>
  <connections/>
  <buttongroups>
   <buttongroup name="buttonGroup"/>

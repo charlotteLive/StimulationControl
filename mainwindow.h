@@ -54,6 +54,8 @@ private slots:
 
     void on_doubleStimulation_triggered();
 
+    void on_action_trajectory_triggered();
+
     void on_sineWave_clicked();
 
     void on_desiredTrajectory_currentIndexChanged(int index);
