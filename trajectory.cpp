@@ -16,6 +16,8 @@ trajectory::trajectory(IOnLine *_pOnline, QWidget *parent) :
     connect(ui->customPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), ui->customPlot->xAxis2, SLOT(setRange(QCPRange)));
     ui->customPlot->yAxis->setRange(-180,180);
 
+    sine_plot = new QTimer(this);
+    connect(sine_plot,SIGNAL(timeout()),this,SLOT(plot_sine()));
 }
 
 trajectory::~trajectory()
@@ -25,6 +27,12 @@ trajectory::~trajectory()
 
 void trajectory::on_sine_clicked()
 {
+    sine_plot->start(10);
+    key = 0;
+}
+
+void trajectory::plot_sine()
+{
     //40ms触发一次
     if(key%4==0)
     {
@@ -33,9 +41,8 @@ void trajectory::on_sine_clicked()
         if (gData >= 0)
         {
             double time = key/100.0;
-            value = -(gData-4000)/4000.0*180;
-            dValue = (value - valueLast)/0.04;
-            valueLast = value;
+            double value = -(gData-4000)/4000.0*180;
+            double desire = 25 + 15*qSin(time-1.57);
 
             ui->customPlot->graph(0)->addData(time, value);
             ui->customPlot->graph(0)->removeDataBefore(time-15);

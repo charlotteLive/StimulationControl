@@ -2,6 +2,7 @@
 #define TRAJECTORY_H
 
 #include <QDialog>
+#include <QTimer>
 #include "qcustomplot.h"
 
 #import "OnLineInterface.dll" no_namespace
@@ -23,9 +24,13 @@ private slots:
 
     void on_step_clicked();
 
+    void plot_sine();
+
 private:
     Ui::trajectory *ui;
     IOnLine *pOnline;	// 传感器接口的指针
+    unsigned int key;
+    QTimer *sine_plot;
 };
 
 #endif // TRAJECTORY_H
